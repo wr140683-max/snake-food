@@ -121,6 +121,27 @@ canvas{width:min(100vw - 8px,96vmin)!important;height:min(100vw - 8px,96vmin)!im
 }
 .controls{padding-bottom:max(8px,env(safe-area-inset-bottom))}
 
+
+body.touch-mode .dpad{display:none!important}
+body.touch-mode canvas{
+  width:min(100vw - 4px, 100dvh - 120px)!important;
+  height:min(100vw - 4px, 100dvh - 120px)!important;
+  max-height:calc(100dvh - 110px)!important;
+  max-width:100vw!important;
+  border-radius:8px;
+}
+body.dpad-mode canvas{
+  width:min(100vw - 12px, 58vmin)!important;
+  height:min(100vw - 12px, 58vmin)!important;
+  max-height:52dvh!important;
+}
+.skin-list{max-height:50vh;overflow-y:auto;-webkit-overflow-scrolling:touch;width:100%;max-width:340px;padding:6px;text-align:left;margin:0 auto}
+.skin-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:6px 0;background:#0f172a;border:2px solid #334155;border-radius:14px;cursor:pointer;min-height:52px}
+.skin-list-item.selected{border-color:#22c55e;box-shadow:0 0 14px rgba(34,197,94,.4)}
+.skin-wave{width:120px;height:40px;flex-shrink:0;border-radius:8px;background:#020617;display:block}
+.skin-preview-box{width:100%;max-width:320px;height:100px;background:#020617;border:1px solid #334155;border-radius:12px;margin:8px auto;overflow:hidden}
+.skin-preview-box canvas{width:100%!important;height:100%!important}
+
 </style>
 </head>
 <body>
@@ -200,7 +221,7 @@ canvas{width:min(100vw - 8px,96vmin)!important;height:min(100vw - 8px,96vmin)!im
     <button class="tab" onclick="showTab('board')">Board</button>
   </div>
 
-  <div id="skinsPanel" class="hidden">
+  <div id="skinsPanel" class="hidden" style="width:100%;max-width:360px">
     
     <div class="skin-preview-box"><canvas id="skinPreviewCanvas" width="300" height="90"></canvas></div>
     <div style="font-size:10px;color:#64748b;margin-bottom:4px">Try on · Swipe skins below</div>
@@ -379,7 +400,13 @@ renderSkins();
 renderStages();
 setupDaily();
 
-function resizeCanvas(){const h=window.innerHeight||800;const w=window.innerWidth||400;const maxW=Math.min(w-8,h*0.72,560);const size=Math.max(GRID*12,Math.floor(maxW/GRID)*GRID);canvas.width=size;canvas.height=size}
+function resizeCanvas(){
+  const h=window.innerHeight||800,w=window.innerWidth||400;
+  const touch=document.body.classList.contains('touch-mode');
+  const maxW=touch?Math.min(w-4,h-100):Math.min(w-12,h*0.52,420);
+  const size=Math.max(GRID*10,Math.floor(maxW/GRID)*GRID);
+  canvas.width=size;canvas.height=size;
+}
 resizeCanvas();window.addEventListener('resize',resizeCanvas);
 
 function audioCtx(){if(!window._ac)window._ac=new(window.AudioContext||window.webkitAudioContext)();return window._ac}
@@ -471,84 +498,100 @@ function buySkin(s){
 }
 
 
+
 function drawWaveOnCanvas(cv,s){
-  if(!cv)return;
-  const c=cv.getContext('2d');const W=cv.width,H=cv.height,G=12;
+  if(!cv||!s)return;
+  const c=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
   c.clearRect(0,0,W,H);
-  const t=Date.now()/400;
-  const n=9;
+  c.fillStyle='#020617';c.fillRect(0,0,W,H);
+  const t=Date.now()/350,n=8,G=10;
   for(let i=0;i<n;i++){
-    const x=8+i*(W-16)/(n-1);
-    const y=H/2+Math.sin(t+i*0.55)*6;
+    const x=10+i*(W-20)/(n-1);
+    const y=H/2+Math.sin(t+i*0.5)*5;
     const isHead=i===n-1;
-    if(s.id!=='classic'&&(s.anim||s.id)){
+    if(s.id!=='classic'){
       const anim=s.anim||s.id;
+      c.save();
       if(anim==='fire'||anim==='inferno'||anim==='phoenix'||anim==='lava'){
-        c.shadowBlur=6;c.shadowColor='#f97316';c.fillStyle='rgba(239,68,68,.35)';
-        c.beginPath();c.arc(x,y,G/2+2,0,Math.PI*2);c.fill();c.shadowBlur=0;
+        c.shadowBlur=8;c.shadowColor='#f97316';c.fillStyle='rgba(249,115,22,0.35)';
       }else if(anim==='ice'||anim==='frost'||anim==='frostburn'){
-        c.shadowBlur=5;c.shadowColor='#22d3ee';c.fillStyle='rgba(103,232,249,.3)';
-        c.beginPath();c.arc(x,y,G/2+1,0,Math.PI*2);c.fill();c.shadowBlur=0;
+        c.shadowBlur=6;c.shadowColor='#22d3ee';c.fillStyle='rgba(34,211,238,0.3)';
       }else{
-        c.shadowBlur=5;c.shadowColor=s.color;c.fillStyle=s.color+'44';
-        c.beginPath();c.arc(x,y,G/2+1,0,Math.PI*2);c.fill();c.shadowBlur=0;
+        c.shadowBlur=6;c.shadowColor=s.color;c.fillStyle=s.color+'55';
       }
+      c.beginPath();c.arc(x,y,G/2+2,0,Math.PI*2);c.fill();
+      c.restore();
     }
     c.fillStyle=isHead?s.head:s.color;
-    c.beginPath();c.arc(x,y,isHead?G/2+1:G/2-0.5,0,Math.PI*2);c.fill();
+    c.beginPath();c.arc(x,y,isHead?G/2+1.5:G/2,0,Math.PI*2);c.fill();
     if(isHead){
       c.fillStyle='#0a0f1e';
-      c.beginPath();c.arc(x-2.5,y-1.5,1.6,0,Math.PI*2);c.fill();
-      c.beginPath();c.arc(x+2.5,y-1.5,1.6,0,Math.PI*2);c.fill();
+      c.beginPath();c.arc(x-2.2,y-1.2,1.5,0,Math.PI*2);c.fill();
+      c.beginPath();c.arc(x+2.2,y-1.2,1.5,0,Math.PI*2);c.fill();
     }
   }
 }
+
 function renderSkins(){
   const row=document.getElementById('skinRow');
   if(!row)return;
   row.className='skin-list';
   row.innerHTML='';
-  SKINS.forEach(s=>{
-    const owned=isOwned(s.id);
-    const canScore=canUnlockByScore(s);
-    const canP=canBuy(s);
-    const locked=!owned&&!canScore&&!(s.price>0&&canP);
+  SKINS.forEach((s,idx)=>{
+    const owned=typeof isOwned==='function'?isOwned(s.id):true;
     const item=document.createElement('div');
-    item.className='skin-list-item'+(currentSkin===s.id?' selected':'')+(owned||canScore||s.freeAnim?'':' locked');
+    item.className='skin-list-item'+(currentSkin===s.id?' selected':'');
+    item.style.cursor='pointer';
     const cv=document.createElement('canvas');
-    cv.className='skin-wave';cv.width=140;cv.height=36;
+    cv.className='skin-wave';
+    cv.width=120;cv.height=40;
     const meta=document.createElement('div');
-    meta.className='skin-meta';
-    let tag=s.rarity.toUpperCase();
-    if(s.id==='classic')tag='CLEAN';
-    else if(s.freeAnim)tag='FREE FX';
-    else if(s.anim||s.id!=='classic')tag=(s.price?s.price+'💎 · FX':'FX');
-    meta.innerHTML='<div class="nm">'+s.emoji+' '+s.name+'</div><div class="tg">'+tag+'</div>';
+    meta.style.flex='1';
+    meta.style.minWidth='0';
+    let tag='CLEAN';
+    if(s.id!=='classic'){
+      if(s.freeAnim)tag='FREE FX';
+      else if(s.price>0)tag=s.price+' 💎';
+      else tag=(s.rarity||'').toUpperCase();
+    }
+    meta.innerHTML='<div style="font-size:14px;font-weight:700;color:#e2e8f0">'+s.emoji+' '+s.name+'</div><div style="font-size:11px;color:#94a3b8">'+tag+'</div>';
     const go=document.createElement('div');
-    go.className='go';
-    go.textContent=owned?(currentSkin===s.id?'✓':'Use'):(canScore||canP?(s.price&&!canScore?s.price+'💎':'Unlock'):'🔒');
+    go.style.fontSize='12px';go.style.fontWeight='700';go.style.color='#4ade80';
+    const canScore=typeof canUnlockByScore==='function'&&canUnlockByScore(s);
+    const canP=typeof canBuy==='function'&&canBuy(s);
+    if(owned)go.textContent=currentSkin===s.id?'✓ On':'Use';
+    else if(canScore||canP)go.textContent=s.price&&!canScore?s.price+'💎':'Unlock';
+    else go.textContent='🔒';
     item.appendChild(cv);item.appendChild(meta);item.appendChild(go);
-    item.onclick=()=>{
-      setPreviewSkin(s.id);
+    item.onclick=function(){
+      if(typeof setPreviewSkin==='function')setPreviewSkin(s.id);
       drawWaveOnCanvas(cv,s);
-      if(owned){currentSkin=s.id;localStorage.setItem('snakeSkin',s.id);renderSkins();drawSkinPreview()}
-      else if(canUnlockByScore(s)||canBuy(s))buySkin(s);
-      else{setPreviewSkin(s.id);drawSkinPreview()}
+      if(owned){
+        currentSkin=s.id;
+        localStorage.setItem('snakeSkin',s.id);
+        renderSkins();
+        if(typeof drawSkinPreview==='function')drawSkinPreview();
+      }else if(canScore||canP){
+        if(typeof buySkin==='function')buySkin(s);
+      }else if(typeof setPreviewSkin==='function'){
+        setPreviewSkin(s.id);
+        if(typeof drawSkinPreview==='function')drawSkinPreview();
+      }
     };
     row.appendChild(item);
     drawWaveOnCanvas(cv,s);
   });
-  // animate waves
   if(!window._waveAnim){
-    window._waveAnim=setInterval(()=>{
-      if(document.getElementById('skinsPanel')&&!document.getElementById('skinsPanel').classList.contains('hidden')){
-        row.querySelectorAll('canvas.skin-wave').forEach((cv,idx)=>{
-          const s=SKINS[idx];if(s)drawWaveOnCanvas(cv,s);
-        });
-      }
-    },80);
+    window._waveAnim=setInterval(function(){
+      const panel=document.getElementById('skinsPanel');
+      if(!panel||panel.classList.contains('hidden'))return;
+      const canvases=row.querySelectorAll('canvas.skin-wave');
+      canvases.forEach(function(cv,idx){if(SKINS[idx])drawWaveOnCanvas(cv,SKINS[idx]);});
+    },90);
   }
 }
+
 
 
 function renderStages(){
@@ -823,7 +866,16 @@ document.addEventListener('keydown',e=>{
 });
 function toggleSound(){soundOn=!soundOn;document.getElementById('soundBtn').textContent=soundOn?'🔊':'🔇'}
 function togglePause(){if(!started||gameOver)return;paused=!paused;document.getElementById('pauseBtn').textContent=paused?'▶':'⏸'}
-function toggleDpad(){const d=document.getElementById('dpad'),b=document.getElementById('dpadBtn');d.classList.toggle('dpad-hidden');b.classList.toggle('active-toggle')}
+function toggleDpad(){
+  const d=document.getElementById('dpad');
+  const on=d.classList.toggle('dpad-hidden');
+  // on=true means hidden -> touch mode
+  document.body.classList.toggle('touch-mode', on);
+  document.body.classList.toggle('dpad-mode', !on);
+  const btn=document.getElementById('dpadBtn');
+  if(btn)btn.classList.toggle('active-toggle', !on);
+  resizeCanvas();
+}
 
 
 
@@ -1041,7 +1093,7 @@ canvas.addEventListener('touchend',e=>{
   touchStart=null;e.preventDefault();
 },{passive:false});
 
-init();requestAnimationFrame(loop);
+document.body.classList.add('touch-mode');document.body.classList.remove('dpad-mode');init();requestAnimationFrame(loop);
 </script>
 </body>
 </html>
