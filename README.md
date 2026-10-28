@@ -1,70 +1,40 @@
-# Snake Food 🐍
+# Snake Bite 🐍
 
-Addictive HTML5 Snake game with skins, stages, gems, levels, daily challenges, and leaderboard.
+**One more bite.**
 
-**Live:** https://wr140683-max.github.io/snake-food/
+Modern addictive Snake for mobile — swipe, combos, skins, stages, titles, daily streak, profile.
+
+**Live:** https://wr140683-max.github.io/snake-food/  
+**Repo:** https://github.com/wr140683-max/snake-food
+
+## Tagline
+**Snake Bite — One more bite.**
 
 ## Features
-- Swipe + optional D-Pad
+- Full-screen mobile-first (swipe + optional D-Pad)
+- Modes: **Classic · Wrap · 60s Time Attack**
 - Easy / Normal / Hard
-- 7 skins (Common → Mythic) with score or 💎 unlock
-- 6 stages / maps (Classic, Forest, Neon City, Desert, Ice Cave, Void)
-- Level progression + Daily Challenge
-- Local leaderboard (Global / India tabs)
-- Rare unlock announcement toast
-- Mobile + Desktop
+- Combo + near-miss edge glow + particles
+- 15+ skins (Common → Mythic) — score or 💎 unlock
+- 12 stages / maps (Forest, Cyberpunk, Matrix, Lava…)
+- Titles: Novice → Snake God → Eternal (on HUD + leaderboard)
+- Daily login **streak** + gems
+- Daily challenge + local leaderboard (Global / India)
+- **Profile card** (name, title, best, streak, level, skin)
+- Settings: sound, haptics, high contrast, reduced motion
+- Rare unlock announcement toasts
 
-## Forest Stage Colors
-Updated to cinematic dark forest palette (research-based):
-- Background: `#1A2B1E` → `#0C1D0C`
-- Food: `#A3E635` (bright lime)
-- Style: deep canopy / shadowroot game UI
+## What to improve next (from top games like Worms Zone)
+1. **Seasonal events** (Halloween, Diwali skins) — limited time = urgency
+2. **Cute / bold character art** for store icon + screenshots
+3. **Offline** badge + small APK size
+4. **Live ops calendar** (weekly challenge, weekend 2x gems)
+5. **Privacy policy** + clean data safety (Play Store trust)
+6. Respond to reviews (builds rating)
+7. Short vertical video ads (combo + title unlock)
 
-## Leaderboard
-Currently **local** (this device). Tabs: 🌍 Global / 🇮🇳 India.
-
-### Real worldwide leaderboard
-Use **Firebase Realtime Database** or **Supabase** (free tier):
-1. Create project → enable Realtime Database
-2. On game over: write `{ name, score, region, date }`
-3. Board tab: read top 50 ordered by score
-4. Region filter for India vs Global
-
-## Convert to APK + Google Play Store
-
-### Recommended: Capacitor
-```bash
-npm install -g @capacitor/cli
-mkdir snake-app && cd snake-app
-npm init -y
-npm install @capacitor/core @capacitor/cli @capacitor/android
-npx cap init "Snake Food" com.yourname.snakefood --web-dir=www
-# copy index.html into www/
-npx cap add android
-npx cap sync
-npx cap open android
-```
-Then in Android Studio: **Build → Generate Signed Bundle / APK** (use AAB for Play Store).
-
-### Play Console steps
-1. Create developer account ($25 one-time)
-2. Create new app → upload signed **AAB**
-3. Store listing: title, short + full description, screenshots, icon 512px, feature graphic
-4. Privacy policy URL (required)
-5. Content rating + target audience
-6. Submit for review
-
-### Faster no-code
-- https://www.htmltoapp.net/ — upload HTML/ZIP → APK
-- Bubblewrap (TWA) if you add PWA manifest + service worker first
-
-### Checklist
-- [ ] Icon 512×512
-- [ ] Feature graphic 1024×500
-- [ ] Phone + tablet screenshots
-- [ ] Privacy policy page
-- [ ] Signed release AAB
-- [ ] Content rating questionnaire
+## Play Store path
+Capacitor → signed **AAB** → Play Console ($25) → listing + privacy policy.
 
 ## License
-MIT — free to use and publish.
+MIT
