@@ -1,1 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0f1e">
+<title>Snake Bite — One more bite.</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;height:100dvh;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0f1e;color:#e5e7eb;touch-action:none;user-select:none}
+body{display:flex;flex-direction:column;align-items:center;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.top{width:100%;max-width:560px;display:flex;justify-content:space-between;padding:8px 14px 4px}
+.score{font-size:48px;font-weight:900;color:#22c55e;text-shadow:0 0 20px rgba(34,197,94,.5);line-height:1}
+.best{font-size:12px;color:#9ca3af;font-weight:600}
+.right{text-align:right}
+#levelTag{font-size:18px;font-weight:800;color:#a78bfa}
+#gems{font-size:18px;font-weight:800;color:#fbbf24}
+#titleHud{font-size:11px;color:#94a3b8}
+#mult{font-size:16px;font-weight:800;color:#fbbf24;min-height:20px}
+canvas{background:#111827;border-radius:12px;display:block;touch-action:none;box-shadow:0 0 40px rgba(34,197,94,.12)}
+body.touch-mode canvas{width:min(100vw - 6px, calc(100dvh - 130px));height:min(100vw - 6px, calc(100dvh - 130px));max-height:calc(100dvh - 130px)}
+body.dpad-mode canvas{width:min(100vw - 12px, 52vmin);height:min(100vw - 12px, 52vmin);max-height:48dvh}
+.controls{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;justify-content:center;padding:0 8px}
+button{padding:10px 14px;font-size:13px;border:none;border-radius:12px;background:#1f2937;color:#e5e7eb;font-weight:600;border:1px solid #374151;cursor:pointer}
+button:active{transform:scale(.96)}
+button.primary{background:#22c55e;color:#0a0f1e;border-color:#22c55e}
+button.active-toggle{background:#166534;border-color:#22c55e}
+.dpad{display:none;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,56px);gap:4px;margin-top:6px}
+body.dpad-mode .dpad{display:grid}
+.dpad button{padding:0;font-size:20px}
+.dpad .empty{background:transparent;border:none}
+.overlay{position:fixed;inset:0;background:rgba(8,12,24,.94);backdrop-filter:blur(10px);z-index:40;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;align-items:center;padding:16px 12px max(20px,env(safe-area-inset-bottom));text-align:center}
+.overlay.hidden{display:none!important}
+.overlay h1{font-size:34px;color:#22c55e;text-shadow:0 0 24px #22c55e;margin-bottom:6px}
+.sub{font-size:13px;color:#9ca3af;margin:4px 0}
+input#nick{margin:8px 0;padding:10px 14px;border-radius:12px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;text-align:center;width:min(260px,85%);font-size:15px}
+.mode-row{display:flex;gap:6px;margin:8px 0;justify-content:center;flex-wrap:wrap}
+.mode-btn{padding:8px 14px;font-size:12px;border-radius:10px;background:#1e293b;border:1px solid #334155;color:#94a3b8;font-weight:700}
+.mode-btn.active{background:#166534;color:#fff;border-color:#22c55e}
+.daily{background:linear-gradient(135deg,#1e1b4b,#0f172a);border:1px solid #4c1d95;border-radius:12px;padding:10px 14px;margin:8px 0;max-width:300px;width:100%}
+.daily .t{font-size:12px;color:#c4b5fd;font-weight:700}
+.daily .d{font-size:11px;color:#a5b4fc}
+.tab-row{display:flex;gap:6px;margin:8px 0;justify-content:center}
+.tab{padding:8px 14px;font-size:12px;border-radius:10px;background:#1e293b;border:1px solid #334155;color:#94a3b8;font-weight:600}
+.tab.active{background:#166534;color:#fff;border-color:#22c55e}
+.panel{width:100%;max-width:340px;display:none;margin:6px 0}
+.panel.show{display:block}
+.skin-shop{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:42vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px}
+.skin-card{background:#0f172a;border:2px solid #334155;border-radius:14px;padding:12px 6px;cursor:pointer;min-height:90px}
+.skin-card.selected{border-color:#22c55e;box-shadow:0 0 12px rgba(34,197,94,.4)}
+.skin-dot{width:32px;height:32px;border-radius:50%;margin:0 auto 6px;box-shadow:0 0 10px currentColor}
+.skin-card .nm{font-size:11px;font-weight:700}
+.skin-card .tg{font-size:9px;color:#94a3b8;margin-top:2px}
+.stage-shop{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:40vh;overflow-y:auto;padding:4px}
+.stage-card{background:#0f172a;border:2px solid #334155;border-radius:14px;padding:12px 6px;cursor:pointer;min-height:80px}
+.stage-card.selected{border-color:#22c55e}
+.stage-card.locked{opacity:.45}
+.stage-card .em{font-size:22px}
+.stage-card .nm{font-size:11px;font-weight:700;margin-top:4px}
+.actions{display:flex;gap:12px;justify-content:center;margin:12px 0;flex-wrap:wrap}
+.actions button{min-width:76px;padding:12px 10px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px}
+.actions button span{font-size:22px}
+.play-big{padding:14px 48px!important;font-size:18px!important;border-radius:16px!important;margin:10px 0}
+.hint{font-size:10px;color:#64748b;margin-top:8px}
+#boardList{text-align:left;font-size:12px;max-height:30vh;overflow-y:auto;padding:8px}
+#boardList div{padding:6px 0;border-bottom:1px solid #1e293b}
+</style>
+</head>
+<body class="touch-mode">
+<div class="top">
+  <div>
+    <div class="score" id="score">0</div>
+    <div class="best">BEST <span id="best">0</span></div>
+  </div>
+  <div class="right">
+    <div id="mult"></div>
+    <div id="levelTag">Lv.1</div>
+    <div id="titleHud">Novice</div>
+    <div id="gems">0</div>
+  </div>
+</div>
+<canvas id="c" width="400" height="400"></canvas>
+<div class="controls">
+  <button class="primary" onclick="doPlay()">Play</button>
+  <button id="btnSound" onclick="toggleSound()">Sound</button>
+  <button onclick="togglePause()">Pause</button>
+  <button id="btnDpad" onclick="toggleDpad()">D-Pad</button>
+  <button onclick="showMenu()">Menu</button>
+</div>
+<div class="dpad" id="dpad">
+  <div class="empty"></div><button onclick="setDir(0,-1)">U</button><div class="empty"></div>
+  <button onclick="setDir(-1,0)">L</button><div class="empty"></div><button onclick="setDir(1,0)">R</button>
+  <div class="empty"></div><button onclick="setDir(0,1)">D</button><div class="empty"></div>
+</div>
 
+<div class="overlay" id="overlay">
+  <h1>SNAKE BITE</h1>
+  <input id="nick" maxlength="16" placeholder="Nickname" />
+  <div class="sub">One more bite. · Fire skin FREE</div>
+  <div class="sub" id="streakLine">0 day streak</div>
+
+  <div class="mode-row">
+    <button class="mode-btn active" id="pmClassic" onclick="setPlayMode('classic')">Classic</button>
+    <button class="mode-btn" id="pmWrap" onclick="setPlayMode('wrap')">Wrap</button>
+    <button class="mode-btn" id="pmTimed" onclick="setPlayMode('timed')">60s</button>
+  </div>
+  <div class="mode-row">
+    <button class="mode-btn" id="diffEasy" onclick="setDiff('easy')">Easy</button>
+    <button class="mode-btn active" id="diffNormal" onclick="setDiff('normal')">Normal</button>
+    <button class="mode-btn" id="diffHard" onclick="setDiff('hard')">Hard</button>
+  </div>
+
+  <div class="daily">
+    <div class="t">Daily Challenge</div>
+    <div class="d" id="dailyDesc">Score 20 in Normal</div>
+  </div>
+
+  <div class="tab-row">
+    <button class="tab active" onclick="showTab('play')">Play</button>
+    <button class="tab" onclick="showTab('stages')">Stages</button>
+    <button class="tab" onclick="showTab('board')">Board</button>
+  </div>
+
+  <div class="panel show" id="panelPlay"></div>
+  <div class="panel" id="panelSkins">
+    <div class="sub">Tap skin to equip · scroll</div>
+    <div class="skin-shop" id="skinShop"></div>
+  </div>
+  <div class="panel" id="panelStages">
+    <div class="sub">Maps unlock with level</div>
+    <div class="stage-shop" id="stageShop"></div>
+  </div>
+  <div class="panel" id="panelBoard">
+    <div id="boardList">No scores yet</div>
+  </div>
+  <div class="panel" id="panelSettings">
+    <div class="mode-row">
+      <button class="mode-btn" onclick="toggleSound()">Sound</button>
+      <button class="mode-btn" onclick="toggleHaptic()">Haptic</button>
+    </div>
+  </div>
+  <div class="panel" id="panelProfile">
+    <div id="profileBox" style="padding:12px;background:#0f172a;border-radius:14px;border:1px solid #334155">
+      <div style="font-size:28px">S</div>
+      <div id="pfName" style="font-weight:800;font-size:16px">Player</div>
+      <div id="pfTitle" style="color:#a78bfa;font-size:12px">Novice</div>
+      <div style="margin-top:8px;font-size:12px;color:#94a3b8">Best: <span id="pfBest">0</span> · Gems <span id="pfGems">0</span></div>
+    </div>
+  </div>
+
+  <button class="primary play-big" onclick="doPlay()">Play</button>
+  <div class="actions">
+    <button type="button" onclick="showTab('skins')"><span>S</span>Change Skin</button>
+    <button type="button" onclick="showTab('settings')"><span>G</span>Settings</button>
+    <button type="button" onclick="showTab('profile')"><span>P</span>Profile</button>
+  </div>
+  <div class="hint">Swipe · D-Pad · Arrows · Offline</div>
+</div>
+
+<script>
+(function(){
+'use strict';
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+const GRID=20;
+function cols(){return Math.floor(canvas.width/GRID)}
+function rows(){return Math.floor(canvas.height/GRID)}
+
+const SKINS=[
+  {id:'classic',name:'Classic',color:'#22c55e',head:'#4ade80',emoji:'C',price:0},
+  {id:'fire',name:'Fire',color:'#f97316',head:'#fb923c',emoji:'F',price:0,freeFx:true},
+  {id:'neon',name:'Neon',color:'#06b6d4',head:'#22d3ee',emoji:'N',price:30},
+  {id:'ocean',name:'Ocean',color:'#0ea5e9',head:'#38bdf8',emoji:'O',price:45},
+  {id:'void',name:'Void',color:'#a855f7',head:'#c084fc',emoji:'V',price:100},
+  {id:'ice',name:'Ice',color:'#67e8f9',head:'#a5f3fc',emoji:'I',price:120},
+  {id:'gold',name:'Gold',color:'#eab308',head:'#facc15',emoji:'G',price:200},
+  {id:'inferno',name:'Inferno',color:'#ef4444',head:'#fbbf24',emoji:'In',price:300},
+  {id:'phoenix',name:'Phoenix',color:'#f59e0b',head:'#fef08a',emoji:'Ph',price:550},
+  {id:'mythic',name:'Mythic',color:'#f43f5e',head:'#fb7185',emoji:'M',price:450}
+];
+
+const STAGES=[
+  {id:'classic',name:'Classic',bg1:'#1a2333',bg2:'#0a0f1e',food:'#f87171',emoji:'1',lv:1},
+  {id:'forest',name:'Forest',bg1:'#14532d',bg2:'#052e16',food:'#86efac',emoji:'2',lv:2},
+  {id:'neon',name:'Neon City',bg1:'#1e1b4b',bg2:'#0f172a',food:'#e879f9',emoji:'3',lv:3},
+  {id:'desert',name:'Desert',bg1:'#78350f',bg2:'#451a03',food:'#fbbf24',emoji:'4',lv:4},
+  {id:'ice',name:'Ice Cave',bg1:'#0c4a6e',bg2:'#082f49',food:'#7dd3fc',emoji:'5',lv:5},
+  {id:'void',name:'Void',bg1:'#2e1065',bg2:'#1e1b4b',food:'#c084fc',emoji:'6',lv:7}
+];
+
+const TITLES=[
+  {lv:1,t:'Novice'},{lv:10,t:'Hunter'},{lv:20,t:'Viper'},
+  {lv:40,t:'Cobra'},{lv:50,t:'Python'},{lv:60,t:'Anaconda'},
+  {lv:70,t:'Legend'},{lv:80,t:'Mythic'},{lv:100,t:'Snake God'}
+];
+
+let snake=[],dir={x:1,y:0},nextDir={x:1,y:0},food=null;
+let score=0,best=+localStorage.getItem('sb_best')||0;
+let gems=+localStorage.getItem('sb_gems')||0;
+let gameOver=false,started=false,paused=false;
+let speed=118,lastTime=0,acc=0,soundOn=true,hapticOn=true;
+let diff='normal',gameMode='classic',timedLeft=60;
+let currentSkin=localStorage.getItem('sb_skin')||'classic';
+let currentStage=localStorage.getItem('sb_stage')||'classic';
+let owned;
+try{owned=JSON.parse(localStorage.getItem('sb_owned')||'["classic","fire"]')}catch(e){owned=['classic','fire']}
+let level=1,combo=0,particles=[];
+let streak=+localStorage.getItem('sb_streak')||0;
+
+function $(id){return document.getElementById(id)}
+$('best').textContent=best;
+$('gems').textContent='Gems '+gems;
+
+function getTitle(){
+  var t=TITLES[0];
+  for(var i=0;i<TITLES.length;i++) if(level>=TITLES[i].lv) t=TITLES[i];
+  return t;
+}
+function updateLevel(){
+  var targets=[0,8,15,25,40,60,85,120,160,210,280];
+  level=1;
+  for(var i=1;i<targets.length;i++) if(best>=targets[i]) level=i+1;
+  $('levelTag').textContent='Lv.'+level;
+  $('titleHud').textContent=getTitle().t;
+}
+
+function baseSpeed(){return diff==='easy'?150:diff==='hard'?85:118}
+function minSpeed(){return diff==='easy'?75:diff==='hard'?40:55}
+
+function resize(){
+  var h=window.innerHeight||800,w=window.innerWidth||400;
+  var touch=document.body.classList.contains('touch-mode');
+  var maxW=touch?Math.min(w-6,h-120):Math.min(w-12,h*0.48,400);
+  var size=Math.max(GRID*12,Math.floor(maxW/GRID)*GRID);
+  canvas.width=size;canvas.height=size;
+}
+resize();
+window.addEventListener('resize',resize);
+
+function beep(f,d){
+  if(!soundOn)return;
+  try{
+    if(!window._ac) window._ac=new (window.AudioContext||window.webkitAudioContext)();
+    var ac=window._ac,o=ac.createOscillator(),g=ac.createGain();
+    o.type='square';o.frequency.value=f;
+    g.gain.value=0.1;
+    g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+(d||0.08));
+    o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+(d||0.08));
+  }catch(e){}
+}
+function haptic(ms){if(!hapticOn)return;try{if(navigator.vibrate)navigator.vibrate(ms||12)}catch(e){}}
+
+function skin(){for(var i=0;i<SKINS.length;i++) if(SKINS[i].id===currentSkin) return SKINS[i]; return SKINS[0]}
+function stage(){for(var i=0;i<STAGES.length;i++) if(STAGES[i].id===currentStage) return STAGES[i]; return STAGES[0]}
+function isOwned(id){return owned.indexOf(id)>=0}
+
+function placeFood(){
+  var c=cols(),r=rows(),p,ok,i;
+  do{
+    p={x:(Math.random()*c)|0,y:(Math.random()*r)|0};ok=true;
+    for(i=0;i<snake.length;i++) if(snake[i].x===p.x&&snake[i].y===p.y){ok=false;break}
+  }while(!ok);
+  food=p;
+}
+
+function init(){
+  var c=cols(),r=rows(),mx=(c/2)|0,my=(r/2)|0;
+  snake=[{x:mx,y:my},{x:mx-1,y:my},{x:mx-2,y:my}];
+  dir={x:1,y:0};nextDir={x:1,y:0};
+  score=0;timedLeft=60;gameOver=false;started=false;paused=false;
+  speed=baseSpeed();combo=0;particles=[];
+  $('score').textContent='0';$('mult').textContent='';
+  placeFood();
+  updateLevel();
+}
+
+function setDir(x,y){
+  if(x===-dir.x&&y===-dir.y)return;
+  nextDir={x:x,y:y};
+}
+
+function update(){
+  if(gameOver||!started||paused)return;
+  if(gameMode==='timed'){
+    timedLeft-=speed/1000;
+    if(timedLeft<=0){endGame();return}
+  }
+  dir=nextDir;
+  var head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+  var c=cols(),r=rows(),i;
+  if(gameMode==='wrap'){
+    head.x=(head.x+c)%c;head.y=(head.y+r)%r;
+  }else if(head.x<0||head.x>=c||head.y<0||head.y>=r){
+    endGame();return;
+  }
+  for(i=0;i<snake.length;i++) if(snake[i].x===head.x&&snake[i].y===head.y){endGame();return}
+  snake.unshift(head);
+  if(food&&head.x===food.x&&head.y===food.y){
+    score+=1+Math.min(combo,5);
+    combo++;
+    $('score').textContent=score;
+    if(combo>1)$('mult').textContent='x'+Math.min(combo,6);
+    beep(520+combo*40,0.07);haptic(10);
+    gems+=1;localStorage.setItem('sb_gems',gems);$('gems').textContent='Gems '+gems;
+    speed=Math.max(minSpeed(),baseSpeed()-score*1.4);
+    placeFood();
+    for(i=0;i<6;i++) particles.push({x:(head.x+0.5)*GRID,y:(head.y+0.5)*GRID,vx:(Math.random()-0.5)*3,vy:(Math.random()-0.5)*3,life:1,col:skin().head});
+  }else{
+    snake.pop();
+    if(combo>0){combo=0;$('mult').textContent=''}
+  }
+}
+
+function roundRect(x,y,w,h,r){
+  if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();return}
+  ctx.fillRect(x,y,w,h);
+}
+
+function draw(){
+  var st=stage(),sk=skin(),i,s,isHead,pad;
+  var g=ctx.createRadialGradient(canvas.width/2,canvas.height/2,10,canvas.width/2,canvas.height/2,canvas.width*0.8);
+  g.addColorStop(0,st.bg1);g.addColorStop(1,st.bg2);
+  ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='rgba(255,255,255,0.03)';ctx.lineWidth=1;
+  for(i=0;i<canvas.width;i+=GRID){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,canvas.height);ctx.stroke()}
+  for(i=0;i<canvas.height;i+=GRID){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(canvas.width,i);ctx.stroke()}
+  if(food){
+    ctx.fillStyle=st.food;
+    ctx.beginPath();ctx.arc((food.x+0.5)*GRID,(food.y+0.5)*GRID,GRID*0.35,0,Math.PI*2);ctx.fill();
+  }
+  particles=particles.filter(function(p){
+    p.x+=p.vx;p.y+=p.vy;p.life-=0.04;
+    if(p.life<=0)return false;
+    ctx.globalAlpha=p.life;ctx.fillStyle=p.col;
+    ctx.fillRect(p.x,p.y,3,3);ctx.globalAlpha=1;return true;
+  });
+  for(i=0;i<snake.length;i++){
+    s=snake[i];isHead=i===0;
+    if(sk.freeFx||sk.id==='inferno'||sk.id==='phoenix'){
+      ctx.globalAlpha=0.25;ctx.fillStyle=sk.color;
+      ctx.fillRect(s.x*GRID-1,s.y*GRID-1,GRID+2,GRID+2);
+      ctx.globalAlpha=1;
+    }
+    ctx.fillStyle=isHead?sk.head:sk.color;
+    pad=1.5;
+    roundRect(s.x*GRID+pad,s.y*GRID+pad,GRID-pad*2,GRID-pad*2,5);
+    if(isHead){
+      var ex=s.x*GRID+GRID/2+dir.x*3,ey=s.y*GRID+GRID/2+dir.y*3;
+      ctx.fillStyle='#0a0f1e';
+      ctx.beginPath();ctx.arc(ex-3.2,ey-2,2.2,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(ex+3.2,ey-2,2.2,0,Math.PI*2);ctx.fill();
+    }
+  }
+  if(paused){
+    ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#fff';ctx.font='bold 28px sans-serif';ctx.textAlign='center';
+    ctx.fillText('PAUSED',canvas.width/2,canvas.height/2);
+  }
+}
+
+function endGame(){
+  gameOver=true;started=false;
+  beep(180,0.2);haptic(40);
+  if(score>best){best=score;localStorage.setItem('sb_best',best);$('best').textContent=best}
+  try{
+    var board=JSON.parse(localStorage.getItem('sb_board')||'[]');
+    var name=($('nick').value||localStorage.getItem('sb_name')||'Player').slice(0,16);
+    board.push({name:name,score:score,date:Date.now()});
+    board.sort(function(a,b){return b.score-a.score});
+    localStorage.setItem('sb_board',JSON.stringify(board.slice(0,30)));
+  }catch(e){}
+  gems+=Math.floor(score/2);localStorage.setItem('sb_gems',gems);$('gems').textContent='Gems '+gems;
+  updateLevel();
+  showMenu();
+}
+
+function loop(ts){
+  if(!lastTime)lastTime=ts;
+  acc+=ts-lastTime;lastTime=ts;
+  while(acc>=speed){update();acc-=speed}
+  draw();
+  requestAnimationFrame(loop);
+}
+
+function doPlay(){
+  var n=$('nick').value.trim();
+  if(n)localStorage.setItem('sb_name',n);
+  init();
+  started=true;gameOver=false;paused=false;lastTime=0;acc=0;
+  $('overlay').classList.add('hidden');
+  beep(440,0.05);haptic(8);
+}
+
+function showMenu(){
+  $('overlay').classList.remove('hidden');
+  $('nick').value=localStorage.getItem('sb_name')||'';
+  $('streakLine').textContent=streak+' day streak';
+  renderSkins();renderStages();renderBoard();renderProfile();
+  updateLevel();
+}
+
+function showTab(t){
+  $('panelPlay').classList.toggle('show',t==='play');
+  $('panelSkins').classList.toggle('show',t==='skins');
+  $('panelStages').classList.toggle('show',t==='stages');
+  $('panelBoard').classList.toggle('show',t==='board');
+  $('panelSettings').classList.toggle('show',t==='settings');
+  $('panelProfile').classList.toggle('show',t==='profile');
+  var tabs=document.querySelectorAll('.tab');
+  for(var i=0;i<tabs.length;i++){
+    var x=tabs[i].textContent.toLowerCase();
+    tabs[i].classList.toggle('active',(t==='play'&&x==='play')||(t==='stages'&&x==='stages')||(t==='board'&&x==='board'));
+  }
+  if(t==='skins')renderSkins();
+  if(t==='stages')renderStages();
+  if(t==='board')renderBoard();
+  if(t==='profile')renderProfile();
+}
+
+function renderSkins(){
+  var box=$('skinShop');
+  if(!box)return;
+  box.innerHTML='';
+  for(var i=0;i<SKINS.length;i++){(function(s){
+    var card=document.createElement('div');
+    card.className='skin-card'+(currentSkin===s.id?' selected':'');
+    var tag=s.price===0?(s.freeFx?'FREE FX':'Free'):(isOwned(s.id)?'Owned':s.price+' gems');
+    card.innerHTML='<div class="skin-dot" style="background:'+s.color+';color:'+s.color+'"></div><div class="nm">'+s.emoji+' '+s.name+'</div><div class="tg">'+tag+'</div>';
+    card.onclick=function(){
+      if(isOwned(s.id)||s.price===0){
+        currentSkin=s.id;localStorage.setItem('sb_skin',s.id);
+        if(!isOwned(s.id)){owned.push(s.id);localStorage.setItem('sb_owned',JSON.stringify(owned))}
+        renderSkins();
+      }else if(gems>=s.price){
+        gems-=s.price;localStorage.setItem('sb_gems',gems);$('gems').textContent='Gems '+gems;
+        owned.push(s.id);localStorage.setItem('sb_owned',JSON.stringify(owned));
+        currentSkin=s.id;localStorage.setItem('sb_skin',s.id);
+        renderSkins();beep(880,0.1);
+      }else{
+        alert('Need '+s.price+' gems');
+      }
+    };
+    box.appendChild(card);
+  })(SKINS[i]);}
+}
+
+function renderStages(){
+  var box=$('stageShop');
+  if(!box)return;
+  box.innerHTML='';
+  for(var i=0;i<STAGES.length;i++){(function(s){
+    var unlocked=level>=s.lv;
+    var card=document.createElement('div');
+    card.className='stage-card'+(currentStage===s.id?' selected':'')+(unlocked?'':' locked');
+    card.innerHTML='<div class="em">'+s.emoji+'</div><div class="nm">'+s.name+'</div><div class="tg" style="font-size:9px;color:#94a3b8">'+(unlocked?'Open':'Lv.'+s.lv)+'</div>';
+    card.onclick=function(){
+      if(!unlocked)return;
+      currentStage=s.id;localStorage.setItem('sb_stage',s.id);renderStages();
+    };
+    box.appendChild(card);
+  })(STAGES[i]);}
+}
+
+function renderBoard(){
+  var box=$('boardList');
+  if(!box)return;
+  var board=[];
+  try{board=JSON.parse(localStorage.getItem('sb_board')||'[]')}catch(e){}
+  if(!board.length){box.innerHTML='No scores yet — play a run!';return}
+  var h='';
+  for(var i=0;i<Math.min(15,board.length);i++) h+='<div>#'+(i+1)+' <b>'+board[i].name+'</b> — '+board[i].score+'</div>';
+  box.innerHTML=h;
+}
+
+function renderProfile(){
+  $('pfName').textContent=localStorage.getItem('sb_name')||'Player';
+  $('pfTitle').textContent=getTitle().t;
+  $('pfBest').textContent=best;
+  $('pfGems').textContent=gems;
+}
+
+function setPlayMode(m){
+  gameMode=m;
+  $('pmClassic').classList.toggle('active',m==='classic');
+  $('pmWrap').classList.toggle('active',m==='wrap');
+  $('pmTimed').classList.toggle('active',m==='timed');
+}
+function setDiff(d){
+  diff=d;
+  $('diffEasy').classList.toggle('active',d==='easy');
+  $('diffNormal').classList.toggle('active',d==='normal');
+  $('diffHard').classList.toggle('active',d==='hard');
+}
+function toggleSound(){soundOn=!soundOn}
+function toggleHaptic(){hapticOn=!hapticOn}
+function togglePause(){if(!started||gameOver)return;paused=!paused}
+function toggleDpad(){
+  var on=document.body.classList.toggle('dpad-mode');
+  document.body.classList.toggle('touch-mode',!on);
+  $('btnDpad').classList.toggle('active-toggle',on);
+  resize();
+}
+
+(function(){
+  var today=new Date().toDateString();
+  var last=localStorage.getItem('sb_login')||'';
+  if(last!==today){
+    var yest=new Date(Date.now()-864e5).toDateString();
+    streak=last===yest?streak+1:1;
+    localStorage.setItem('sb_streak',streak);
+    localStorage.setItem('sb_login',today);
+    gems+=5;localStorage.setItem('sb_gems',gems);
+  }
+  $('streakLine').textContent=streak+' day streak';
+  $('gems').textContent='Gems '+gems;
+  $('dailyDesc').textContent='Score 20 in Normal';
+})();
+
+document.addEventListener('keydown',function(e){
+  var k=e.key.toLowerCase();
+  if(k==='arrowup'||k==='w')setDir(0,-1);
+  else if(k==='arrowdown'||k==='s')setDir(0,1);
+  else if(k==='arrowleft'||k==='a')setDir(-1,0);
+  else if(k==='arrowright'||k==='d')setDir(1,0);
+  else if(k===' '){e.preventDefault();togglePause()}
+  else if(k==='enter'&&!started)doPlay();
+});
+
+var touchStart=null;
+canvas.addEventListener('touchstart',function(e){
+  var t=e.touches[0];touchStart={x:t.clientX,y:t.clientY};e.preventDefault();
+},{passive:false});
+canvas.addEventListener('touchmove',function(e){e.preventDefault()},{passive:false});
+canvas.addEventListener('touchend',function(e){
+  if(!touchStart)return;
+  var t=e.changedTouches[0],dx=t.clientX-touchStart.x,dy=t.clientY-touchStart.y;
+  if(Math.hypot(dx,dy)<12){if(!started)doPlay()}
+  else if(Math.abs(dx)>Math.abs(dy)){if(dx>12)setDir(1,0);else if(dx<-12)setDir(-1,0)}
+  else{if(dy>12)setDir(0,1);else if(dy<-12)setDir(0,-1)}
+  touchStart=null;e.preventDefault();
+},{passive:false});
+
+updateLevel();
+init();
+renderSkins();
+renderStages();
+renderBoard();
+renderProfile();
+requestAnimationFrame(loop);
+
+window.doPlay=doPlay;
+window.showMenu=showMenu;
+window.showTab=showTab;
+window.setDir=setDir;
+window.setPlayMode=setPlayMode;
+window.setDiff=setDiff;
+window.toggleSound=toggleSound;
+window.toggleHaptic=toggleHaptic;
+window.togglePause=togglePause;
+window.toggleDpad=toggleDpad;
+})();
+</script>
+</body>
+    </html>
+  
