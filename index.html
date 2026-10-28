@@ -143,8 +143,8 @@ body.dpad-mode canvas{
 .skin-preview-box canvas{width:100%!important;height:100%!important}
 
 
-#skinsPanel{width:100%!important;max-width:360px;max-height:58vh;overflow-y:auto!important;-webkit-overflow-scrolling:touch;padding:4px 0 16px}
-.skin-shop{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;padding:4px;box-sizing:border-box}
+#skinsPanel{width:100%!important;max-width:360px;max-height:min(55vh,420px);overflow-y:auto!important;-webkit-overflow-scrolling:touch;padding:8px 0 20px;min-height:180px}
+.skin-shop{display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;padding:4px;box-sizing:border-box;min-height:120px}
 .skin-card{background:#0f172a;border:2px solid #334155;border-radius:14px;padding:10px 6px;text-align:center;cursor:pointer;min-height:88px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;-webkit-tap-highlight-color:transparent}
 .skin-card.selected{border-color:#22c55e;box-shadow:0 0 12px rgba(34,197,94,.45)}
 .skin-card.locked{opacity:0.55}
@@ -717,7 +717,7 @@ function showTab(t){
     const txt=b.textContent.toLowerCase();
     b.classList.toggle('active',(t==='play'&&txt.includes('play'))||(t==='skins'&&txt.includes('skin'))||(t==='stages'&&txt.includes('stage'))||(t==='board'&&txt.includes('board'))||(t==='settings'&&txt.includes('setting'))||(t==='profile'&&txt.includes('profile')));
   });
-  document.getElementById('skinsPanel').classList.toggle('hidden',t!=='skins');if(t==='skins'){try{renderSkins()}catch(e){console.log(e)}}if(t==='skins'){previewSkinId=currentSkin;setTimeout(drawSkinPreview,50);}
+  document.getElementById('skinsPanel').classList.toggle('hidden',t!=='skins');if(t==='skins'){try{renderSkins()}catch(e){console.log(e)}}if(t==='skins'){previewSkinId=currentSkin;try{renderSkins()}catch(e){}}
   document.getElementById('stagesPanel').classList.toggle('hidden',t!=='stages');
   document.getElementById('boardPanel').classList.toggle('hidden',t!=='board');
   document.getElementById('settingsPanel').classList.toggle('hidden',t!=='settings');
@@ -1092,6 +1092,81 @@ canvas.addEventListener('touchend',e=>{
   else{if(Math.abs(dx)>Math.abs(dy)){if(dx>14)setDir(1,0);else if(dx<-14)setDir(-1,0)}else{if(dy>14)setDir(0,1);else if(dy<-14)setDir(0,-1)}}
   touchStart=null;e.preventDefault();
 },{passive:false});
+
+
+// === STABLE BOOTSTRAP (do not remove) ===
+function renderSkins(){
+  var row=document.getElementById('skinRow');
+  if(!row)return;
+  row.className='skin-shop';
+  row.innerHTML='';
+  var tryBar=document.getElementById('skinTryBar');
+  function paintTry(s){
+    if(!tryBar||!s)return;
+    var h='';
+    for(var i=0;i<6;i++){var col=i===5?s.head:s.color;h+='<span style="background:'+col+';box-shadow:0 0 6px '+col+'"></span>';}
+    tryBar.innerHTML=h;
+  }
+  if(typeof previewSkinId==='undefined'||!previewSkinId)previewSkinId=currentSkin||'classic';
+  var prev=null;
+  for(var i=0;i<SKINS.length;i++){if(SKINS[i].id===previewSkinId){prev=SKINS[i];break;}}
+  if(!prev)prev=SKINS[0];
+  paintTry(prev);
+  for(var i=0;i<SKINS.length;i++){(function(s){
+    var owned=false;
+    try{owned=isOwned(s.id);}catch(e){owned=(s.id==='classic'||s.id==='fire');}
+    var card=document.createElement('div');
+    card.className='skin-card'+(currentSkin===s.id?' selected':'');
+    var tag=s.id==='classic'?'Clean':(s.freeAnim?'FREE FX':(s.price?s.price+'💎':s.rarity||''));
+    card.innerHTML='<div class="skin-dot" style="background:'+s.color+';color:'+s.color+'"></div><div class="sn">'+s.emoji+' '+s.name+'</div><div class="st">'+tag+'</div>';
+    card.onclick=function(){
+      previewSkinId=s.id;paintTry(s);
+      var own=false;try{own=isOwned(s.id);}catch(e){own=true;}
+      if(own){currentSkin=s.id;try{localStorage.setItem('snakeSkin',s.id)}catch(e){}renderSkins();}
+      else{try{buySkin(s);}catch(e){currentSkin=s.id;renderSkins();}}
+    };
+    row.appendChild(card);
+  })(SKINS[i]);}
+}
+function showTab(t){
+  try{
+    var tabs=document.querySelectorAll('.tab-row .tab');
+    for(var i=0;i<tabs.length;i++){
+      var txt=tabs[i].textContent.toLowerCase();
+      tabs[i].classList.toggle('active',
+        (t==='play'&&txt.indexOf('play')>=0)||
+        (t==='stages'&&txt.indexOf('stage')>=0)||
+        (t==='board'&&txt.indexOf('board')>=0));
+    }
+    var sp=document.getElementById('skinsPanel');
+    var st=document.getElementById('stagesPanel');
+    var bp=document.getElementById('boardPanel');
+    var setp=document.getElementById('settingsPanel');
+    var pp=document.getElementById('profilePanel');
+    if(sp){sp.classList.toggle('hidden',t!=='skins');if(t==='skins')renderSkins();}
+    if(st)st.classList.toggle('hidden',t!=='stages');
+    if(bp)bp.classList.toggle('hidden',t!=='board');
+    if(setp)setp.classList.toggle('hidden',t!=='settings');
+    if(pp){pp.classList.toggle('hidden',t!=='profile');if(t==='profile'&&typeof renderProfile==='function')try{renderProfile()}catch(e){}}
+  }catch(e){console.log('showTab',e)}
+}
+function restartGame(){
+  try{
+    init();
+    started=true;gameOver=false;paused=false;
+    lastTime=0;acc=0;
+    if(overlay)overlay.classList.add('hidden');
+    try{requestWakeLock()}catch(e){}
+    try{if(window._ac&&window._ac.state==='suspended')window._ac.resume()}catch(e){}
+  }catch(e){console.log('restart',e);started=true;if(overlay)overlay.classList.add('hidden');}
+}
+// re-bind play buttons
+document.addEventListener('DOMContentLoaded',function(){});
+setTimeout(function(){
+  try{renderSkins();}catch(e){}
+  var btns=document.querySelectorAll('[onclick*="restartGame"]');
+  // already has onclick
+},100);
 
 document.body.classList.add('touch-mode');document.body.classList.remove('dpad-mode');init();requestAnimationFrame(loop);
 </script>
