@@ -31,7 +31,7 @@ button.active-toggle{background:#166534;border-color:var(--accent);color:#fff}
 .dpad{display:grid;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(3,58px);gap:5px;margin-top:6px}
 .dpad button{padding:0;font-size:22px;background:#1f2937;border:1px solid #374151;border-radius:12px}
 .dpad .empty{background:transparent;border:none}
-.overlay{position:fixed;inset:0;background:rgba(8,12,24,.93);backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;z-index:30;padding:14px;text-align:center;overflow-y:auto;padding-top:max(14px,env(safe-area-inset-top))}
+.overlay{overflow-y:auto;-webkit-overflow-scrolling:touch;position:fixed;inset:0;background:rgba(8,12,24,.93);backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;z-index:30;padding:14px;text-align:center;overflow-y:auto;padding-top:max(14px,env(safe-area-inset-top))}
 .overlay h2{font-size:36px;margin-bottom:2px;color:var(--accent);text-shadow:0 0 24px var(--accent)}
 .overlay h2.over{color:var(--food);text-shadow:0 0 24px var(--food)}
 .overlay .sub{font-size:13px;color:#9ca3af;margin-bottom:4px}
@@ -142,6 +142,18 @@ body.dpad-mode canvas{
 .skin-preview-box{width:100%;max-width:320px;height:100px;background:#020617;border:1px solid #334155;border-radius:12px;margin:8px auto;overflow:hidden}
 .skin-preview-box canvas{width:100%!important;height:100%!important}
 
+
+#skinsPanel{width:100%!important;max-width:360px;max-height:58vh;overflow-y:auto!important;-webkit-overflow-scrolling:touch;padding:4px 0 16px}
+.skin-shop{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;padding:4px;box-sizing:border-box}
+.skin-card{background:#0f172a;border:2px solid #334155;border-radius:14px;padding:10px 6px;text-align:center;cursor:pointer;min-height:88px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;-webkit-tap-highlight-color:transparent}
+.skin-card.selected{border-color:#22c55e;box-shadow:0 0 12px rgba(34,197,94,.45)}
+.skin-card.locked{opacity:0.55}
+.skin-dot{width:36px;height:36px;border-radius:50%;box-shadow:0 0 10px currentColor}
+.skin-card .sn{font-size:11px;font-weight:700;color:#e2e8f0;line-height:1.2}
+.skin-card .st{font-size:9px;color:#94a3b8}
+.skin-try{width:100%;height:56px;border-radius:12px;margin:6px 0;background:#020617;border:1px solid #1e293b;display:flex;align-items:center;justify-content:center;gap:4px;overflow:hidden}
+.skin-try span{display:inline-block;width:14px;height:14px;border-radius:4px}
+
 </style>
 </head>
 <body>
@@ -223,10 +235,9 @@ body.dpad-mode canvas{
 
   <div id="skinsPanel" class="hidden" style="width:100%;max-width:360px">
     
-    <div class="skin-preview-box"><canvas id="skinPreviewCanvas" width="300" height="90"></canvas></div>
-    <div style="font-size:10px;color:#64748b;margin-bottom:4px">Try on · Swipe skins below</div>
-
-    <div class="skin-row" id="skinRow"></div>
+    <div class="skin-try" id="skinTryBar"></div>
+    <div style="font-size:10px;color:#64748b;margin:4px 0">Tap a skin to try · scroll for more</div>
+    <div class="skin-row skin-shop" id="skinRow"></div>
     <div style="font-size:10px;color:#64748b;margin-top:4px;max-width:300px">Classic = clean · 🔥 Fire FX free · Other animations paid (💎) · Tap skin to TRY ON</div>
   </div>
 
@@ -533,64 +544,53 @@ function drawWaveOnCanvas(cv,s){
   }
 }
 
+
 function renderSkins(){
   const row=document.getElementById('skinRow');
   if(!row)return;
-  row.className='skin-list';
+  row.className='skin-shop';
   row.innerHTML='';
-  SKINS.forEach((s,idx)=>{
-    const owned=typeof isOwned==='function'?isOwned(s.id):true;
-    const item=document.createElement('div');
-    item.className='skin-list-item'+(currentSkin===s.id?' selected':'');
-    item.style.cursor='pointer';
-    const cv=document.createElement('canvas');
-    cv.className='skin-wave';
-    cv.width=120;cv.height=40;
-    const meta=document.createElement('div');
-    meta.style.flex='1';
-    meta.style.minWidth='0';
-    let tag='CLEAN';
-    if(s.id!=='classic'){
-      if(s.freeAnim)tag='FREE FX';
-      else if(s.price>0)tag=s.price+' 💎';
-      else tag=(s.rarity||'').toUpperCase();
+  const tryBar=document.getElementById('skinTryBar');
+  function paintTry(s){
+    if(!tryBar||!s)return;
+    let html='';
+    for(let i=0;i<6;i++){
+      const col=i===5?s.head:s.color;
+      html+='<span style="background:'+col+';box-shadow:0 0 6px '+col+'"></span>';
     }
-    meta.innerHTML='<div style="font-size:14px;font-weight:700;color:#e2e8f0">'+s.emoji+' '+s.name+'</div><div style="font-size:11px;color:#94a3b8">'+tag+'</div>';
-    const go=document.createElement('div');
-    go.style.fontSize='12px';go.style.fontWeight='700';go.style.color='#4ade80';
+    tryBar.innerHTML=html;
+  }
+  const previewId=typeof previewSkinId!=='undefined'&&previewSkinId?previewSkinId:currentSkin;
+  const prev=SKINS.find(x=>x.id===previewId)||SKINS.find(x=>x.id===currentSkin)||SKINS[0];
+  paintTry(prev);
+  SKINS.forEach(s=>{
+    const owned=typeof isOwned==='function'?isOwned(s.id):(s.id==='classic'||s.id==='fire');
     const canScore=typeof canUnlockByScore==='function'&&canUnlockByScore(s);
     const canP=typeof canBuy==='function'&&canBuy(s);
-    if(owned)go.textContent=currentSkin===s.id?'✓ On':'Use';
-    else if(canScore||canP)go.textContent=s.price&&!canScore?s.price+'💎':'Unlock';
-    else go.textContent='🔒';
-    item.appendChild(cv);item.appendChild(meta);item.appendChild(go);
-    item.onclick=function(){
-      if(typeof setPreviewSkin==='function')setPreviewSkin(s.id);
-      drawWaveOnCanvas(cv,s);
+    const card=document.createElement('div');
+    card.className='skin-card'+(currentSkin===s.id?' selected':'')+(owned||canScore||s.freeAnim?'':' locked');
+    let tag='Free';
+    if(s.id==='classic')tag='Clean';
+    else if(s.freeAnim)tag='FREE FX';
+    else if(!owned&&s.price>0)tag=s.price+'💎';
+    else tag=(s.rarity||'').slice(0,4);
+    card.innerHTML='<div class="skin-dot" style="background:'+s.color+';color:'+s.color+'"></div><div class="sn">'+s.emoji+' '+s.name+'</div><div class="st">'+tag+'</div>';
+    card.onclick=function(){
+      previewSkinId=s.id;
+      paintTry(s);
       if(owned){
         currentSkin=s.id;
         localStorage.setItem('snakeSkin',s.id);
         renderSkins();
-        if(typeof drawSkinPreview==='function')drawSkinPreview();
       }else if(canScore||canP){
         if(typeof buySkin==='function')buySkin(s);
-      }else if(typeof setPreviewSkin==='function'){
-        setPreviewSkin(s.id);
-        if(typeof drawSkinPreview==='function')drawSkinPreview();
+        else{currentSkin=s.id;localStorage.setItem('snakeSkin',s.id);renderSkins()}
       }
     };
-    row.appendChild(item);
-    drawWaveOnCanvas(cv,s);
+    row.appendChild(card);
   });
-  if(!window._waveAnim){
-    window._waveAnim=setInterval(function(){
-      const panel=document.getElementById('skinsPanel');
-      if(!panel||panel.classList.contains('hidden'))return;
-      const canvases=row.querySelectorAll('canvas.skin-wave');
-      canvases.forEach(function(cv,idx){if(SKINS[idx])drawWaveOnCanvas(cv,SKINS[idx]);});
-    },90);
-  }
 }
+
 
 
 
@@ -717,7 +717,7 @@ function showTab(t){
     const txt=b.textContent.toLowerCase();
     b.classList.toggle('active',(t==='play'&&txt.includes('play'))||(t==='skins'&&txt.includes('skin'))||(t==='stages'&&txt.includes('stage'))||(t==='board'&&txt.includes('board'))||(t==='settings'&&txt.includes('setting'))||(t==='profile'&&txt.includes('profile')));
   });
-  document.getElementById('skinsPanel').classList.toggle('hidden',t!=='skins');if(t==='skins'){previewSkinId=currentSkin;setTimeout(drawSkinPreview,50);}
+  document.getElementById('skinsPanel').classList.toggle('hidden',t!=='skins');if(t==='skins'){try{renderSkins()}catch(e){console.log(e)}}if(t==='skins'){previewSkinId=currentSkin;setTimeout(drawSkinPreview,50);}
   document.getElementById('stagesPanel').classList.toggle('hidden',t!=='stages');
   document.getElementById('boardPanel').classList.toggle('hidden',t!=='board');
   document.getElementById('settingsPanel').classList.toggle('hidden',t!=='settings');
