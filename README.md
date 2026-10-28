@@ -1,81 +1,70 @@
-# 🐍 Snake Food
+# Snake Food 🐍
 
-Modern, addictive, **full-screen** Snake game built for mobile (Play Store style).
+Addictive HTML5 Snake game with skins, stages, gems, levels, daily challenges, and leaderboard.
 
-**Repo:** https://github.com/wr140683-max/snake-food  
-**Play:** Open `index.html` or deploy to Netlify / GitHub Pages.
-
----
+**Live:** https://wr140683-max.github.io/snake-food/
 
 ## Features
+- Swipe + optional D-Pad
+- Easy / Normal / Hard
+- 7 skins (Common → Mythic) with score or 💎 unlock
+- 6 stages / maps (Classic, Forest, Neon City, Desert, Ice Cave, Void)
+- Level progression + Daily Challenge
+- Local leaderboard (Global / India tabs)
+- Rare unlock announcement toast
+- Mobile + Desktop
 
-### Controls (Play Store style)
-- **Primary:** Swipe anywhere on the board to turn
-- **Optional D-Pad:** Tap the "D-Pad" button to show/hide on-screen arrows
-- Keyboard: Arrow keys / WASD
-- Space = Pause / Resume
+## Forest Stage Colors
+Updated to cinematic dark forest palette (research-based):
+- Background: `#1A2B1E` → `#0C1D0C`
+- Food: `#A3E635` (bright lime)
+- Style: deep canopy / shadowroot game UI
 
-### Gameplay
-- Classic Snake with **combo system** (keep eating to build x2, x3, x4)
-- Golden **2x power-up** (temporary multiplier + speed boost)
-- **Near-miss** warning (red edge glow when close to wall)
-- Score milestones celebration (10, 25, 50...)
-- Soft progressive speed (Easy / Normal / Hard)
-- Local best score (saved in browser)
+## Leaderboard
+Currently **local** (this device). Tabs: 🌍 Global / 🇮🇳 India.
 
-### Feel
-- Segmented glowing snake with directional eyes
-- Particle bursts + screen shake
-- Motion trail
-- Haptic feedback on mobile
-- Wake Lock (screen stays on while playing)
+### Real worldwide leaderboard
+Use **Firebase Realtime Database** or **Supabase** (free tier):
+1. Create project → enable Realtime Database
+2. On game over: write `{ name, score, region, date }`
+3. Board tab: read top 50 ordered by score
+4. Region filter for India vs Global
 
-### UI
-- Clean dark theme
-- Full-screen oriented play area
-- Instant restart after Game Over
-- NEW BEST celebration
+## Convert to APK + Google Play Store
 
----
+### Recommended: Capacitor
+```bash
+npm install -g @capacitor/cli
+mkdir snake-app && cd snake-app
+npm init -y
+npm install @capacitor/core @capacitor/cli @capacitor/android
+npx cap init "Snake Food" com.yourname.snakefood --web-dir=www
+# copy index.html into www/
+npx cap add android
+npx cap sync
+npx cap open android
+```
+Then in Android Studio: **Build → Generate Signed Bundle / APK** (use AAB for Play Store).
 
-## How to Play
+### Play Console steps
+1. Create developer account ($25 one-time)
+2. Create new app → upload signed **AAB**
+3. Store listing: title, short + full description, screenshots, icon 512px, feature graphic
+4. Privacy policy URL (required)
+5. Content rating + target audience
+6. Submit for review
 
-1. Choose difficulty (Easy / Normal / Hard)
-2. Tap **Play** or just **swipe** on the board
-3. Swipe to change direction
-4. Eat red food → grow + score
-5. Build **combos** by eating continuously
-6. Grab golden orbs for x2 multiplier
-7. Don't hit walls or yourself
+### Faster no-code
+- https://www.htmltoapp.net/ — upload HTML/ZIP → APK
+- Bubblewrap (TWA) if you add PWA manifest + service worker first
 
----
-
-## Future Ideas (from research)
-
-Popular modern Snake games on GitHub add:
-
-| Feature | Why it helps retention |
-|--------|------------------------|
-| **Levels / Stages** | Progressive goals (eat 10 → next stage) |
-| **Themes / Skins** | Unlock neon, matrix, forest, etc. |
-| **Obstacles** | Appear after certain score |
-| **Multiple food types** | Slow-mo, magnet, invincible |
-| **Daily challenge** | "Score 30 today" |
-| **Local leaderboard** | Top 5 scores |
-| **Wrap-around mode** | Optional no-wall mode |
-
-These can be added later without breaking the current core loop.
-
----
-
-## Deploy
-
-- **Netlify:** Drag & drop the folder or connect this repo
-- **GitHub Pages:** Settings → Pages → Deploy from `main`
-- Or just open `index.html` in any browser
-
----
+### Checklist
+- [ ] Icon 512×512
+- [ ] Feature graphic 1024×500
+- [ ] Phone + tablet screenshots
+- [ ] Privacy policy page
+- [ ] Signed release AAB
+- [ ] Content rating questionnaire
 
 ## License
-
-MIT – free to use, modify, and share.
+MIT — free to use and publish.
