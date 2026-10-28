@@ -2,18 +2,17 @@
 
 **One more bite.**
 
-## Skins policy
-- **Classic** — normal, no animation
-- **Fire** — free animated trail/glow
-- **All other FX** (Inferno, Phoenix, Frostburn, Neon…) — **paid** with 💎
-- **Try-on** — open Skins tab, tap any skin to preview live (like Slither.io) before buy/equip
+Upload the latest `index.html` from the complete zip so Pages shows **Snake Bite** (not old SNAKE FOOD).
 
-## Features
-Classic / Wrap / 60s · Combo · Stages · Titles · Streak · Profile · Leaderboard
+## Full screen
+Works on mobile + laptop/PC browser. For app-like mobile: browser menu → Add to Home Screen.
 
-## Deploy
-Replace `index.html` with latest zip build for full animations + preview.
+## Highlights
+- Bigger Level + 💎 on HUD
+- Slither-style Change Skin + try-on
+- Classic clean · Fire free FX · other FX paid
+- Modes, streak, profile, titles, stages
 
-Live: https://wr140683-max.github.io/snake-food/
+https://wr140683-max.github.io/snake-food/
 
 MIT
