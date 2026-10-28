@@ -2,28 +2,26 @@
 
 **One more bite.**
 
-Modern addictive Snake — swipe, combos, skins, stages, titles, streak, profile.
-
-**Live:** https://wr140683-max.github.io/snake-food/
-
 ## Brand
-- **Name:** Snake Bite
-- **Tagline:** One more bite.
-- **Logo:** Generate app icon 512×512 (green snake + bite mark on dark)
+- Name: **Snake Bite**
+- Tagline: **One more bite.**
+
+## Skins & animations
+- **Classic** — no extra FX (clean original)
+- **Fire** — FREE animated (embers + body glow)
+- **Inferno / Phoenix / Lava** — full fire cover + particles (paid)
+- **Frostburn / Ice** — ice aura
+- **Neon / Cyber** — neon edge glow
+- **Void / Cosmic / Mythic** — purple energy
+- **Gold / Rainbow** — gold shimmer
+- **Matrix / Forest / Retro** — green code/nature particles
+- Others — themed particle trails
 
 ## Features
-- Classic / Wrap / 60s modes
-- Skins + stages + titles + gems
-- Daily streak + daily challenge
-- Profile card + leaderboard
-- Settings (accessibility)
+Classic / Wrap / 60s · Easy-Normal-Hard · Combo · Stages · Titles · Streak · Profile · Leaderboard · Gems
 
-## Play Store checklist
-- [ ] Icon 512px (Snake Bite logo)
-- [ ] Feature graphic 1024×500
-- [ ] Screenshots
-- [ ] Privacy policy URL
-- [ ] Capacitor AAB upload
+## Update game file
+Upload latest `index.html` from release zip (full anim build).
 
 ## License
 MIT
