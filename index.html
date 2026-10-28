@@ -196,11 +196,8 @@ canvas{width:min(100vw - 8px,96vmin)!important;height:min(100vw - 8px,96vmin)!im
 
   <div class="tab-row">
     <button class="tab active" onclick="showTab('play')">Play</button>
-    <button class="tab" onclick="showTab('skins')">Skins</button>
     <button class="tab" onclick="showTab('stages')">Stages</button>
     <button class="tab" onclick="showTab('board')">Board</button>
-    <button class="tab" onclick="showTab('settings')">Settings</button>
-    <button class="tab" onclick="showTab('profile')">Profile</button>
   </div>
 
   <div id="skinsPanel" class="hidden">
@@ -315,7 +312,7 @@ let score=0,best=parseInt(localStorage.getItem('snakeBest')||'0');
 let gems=parseInt(localStorage.getItem('snakeGems')||'0');
 let gameOver=false,started=false,paused=false,speed=118;
 let lastTime=0,acc=0,soundOn=localStorage.getItem('snakeSound')!=='0',multiplier=1,multTimer=0;
-let particles=[],shake=0,scorePop=0,hitStop=0,mode='normal';
+let particles=[],shake=0,scorePop=0,hitStop=0,mode='normal';let gameMode='classic';
 let combo=0,maxCombo=0,nearMiss=0,trail=[],milestonesHit=new Set();
 let currentSkin=localStorage.getItem('snakeSkin')||'classic';
 let currentStage=localStorage.getItem('snakeStage')||'classic';
@@ -394,6 +391,17 @@ function beep(freq,dur,type='square',vol=.13){
 function haptic(p=12){if(typeof hapticOn!=='undefined'&&!hapticOn)return;try{if(navigator.vibrate)navigator.vibrate(p)}catch(e){}}
 let wakeLock=null;
 async function requestWakeLock(){try{if('wakeLock' in navigator)wakeLock=await navigator.wakeLock.request('screen')}catch(e){}}
+
+
+function setPlayMode(m){
+  gameMode=m;
+  ['pmClassic','pmWrap','pmTimed'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.classList.toggle('active', (id==='pmClassic'&&m==='classic')||(id==='pmWrap'&&m==='wrap')||(id==='pmTimed'&&m==='timed'));
+  });
+  const th=document.getElementById('timedHud');
+  if(th)th.classList.toggle('hidden',m!=='timed');
+}
 
 function setMode(m){mode=m;document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===m))}
 function getBaseSpeed(){return mode==='easy'?150:mode==='hard'?88:118}
@@ -983,7 +991,7 @@ function endGame(){
   if(wakeLock){try{wakeLock.release()}catch(e){}wakeLock=null}
 }
 
-function restartGame(){init();started=true;overlay.classList.add('hidden');requestWakeLock();if(window._ac&&window._ac.state==='suspended')window._ac.resume()}
+function restartGame(){init();started=true;lastTime=0;acc=0;overlay.classList.add('hidden');requestWakeLock();if(window._ac&&window._ac.state==='suspended')window._ac.resume()}
 
 function draw(){
   shake*=.78;if(shake<.25)shake=0;
