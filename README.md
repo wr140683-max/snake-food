@@ -2,26 +2,18 @@
 
 **One more bite.**
 
-## Brand
-- Name: **Snake Bite**
-- Tagline: **One more bite.**
-
-## Skins & animations
-- **Classic** — no extra FX (clean original)
-- **Fire** — FREE animated (embers + body glow)
-- **Inferno / Phoenix / Lava** — full fire cover + particles (paid)
-- **Frostburn / Ice** — ice aura
-- **Neon / Cyber** — neon edge glow
-- **Void / Cosmic / Mythic** — purple energy
-- **Gold / Rainbow** — gold shimmer
-- **Matrix / Forest / Retro** — green code/nature particles
-- Others — themed particle trails
+## Skins policy
+- **Classic** — normal, no animation
+- **Fire** — free animated trail/glow
+- **All other FX** (Inferno, Phoenix, Frostburn, Neon…) — **paid** with 💎
+- **Try-on** — open Skins tab, tap any skin to preview live (like Slither.io) before buy/equip
 
 ## Features
-Classic / Wrap / 60s · Easy-Normal-Hard · Combo · Stages · Titles · Streak · Profile · Leaderboard · Gems
+Classic / Wrap / 60s · Combo · Stages · Titles · Streak · Profile · Leaderboard
 
-## Update game file
-Upload latest `index.html` from release zip (full anim build).
+## Deploy
+Replace `index.html` with latest zip build for full animations + preview.
 
-## License
+Live: https://wr140683-max.github.io/snake-food/
+
 MIT
